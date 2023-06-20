@@ -43,36 +43,43 @@ public class TimeHelperTest extends BaseTestCase {
     @Test
     public void testGetMidnightAdjustedInstantBasedOnZone() {
         String zoneId = "UTC";
-        Instant instantAt0000 = LocalDateTime.of(2015, Month.NOVEMBER, 30, 0, 0).atZone(ZoneId.of(zoneId)).toInstant();
+        Instant initialInstant = LocalDateTime.of(2015, Month.NOVEMBER, 30, 0, 0).atZone(ZoneId.of(zoneId)).toInstant();
 
-        Instant backwardAdjusted = TimeHelper.getMidnightAdjustedInstantBasedOnZone(instantAt0000, zoneId, false);
-        assertEquals("Sun, 29 Nov 2015, 11:59 PM UTC",
+        Instant backwardAdjusted = TimeHelper.getMidnightAdjustedInstantBasedOnZone(initialInstant, zoneId, false);
+        assertEquals("Backward adjustment: Midnight to 11:59 PM",
                 TimeHelper.formatInstant(backwardAdjusted, zoneId, DATETIME_DISPLAY_FORMAT));
 
-        Instant forwardAdjusted = TimeHelper.getMidnightAdjustedInstantBasedOnZone(instantAt0000, zoneId, true);
-        assertEquals("Mon, 30 Nov 2015, 12:00 AM UTC",
+        Instant forwardAdjusted = TimeHelper.getMidnightAdjustedInstantBasedOnZone(initialInstant, zoneId, true);
+        assertEquals("Forward adjustment: Midnight to 12:00 AM",
                 TimeHelper.formatInstant(forwardAdjusted, zoneId, DATETIME_DISPLAY_FORMAT));
 
         Instant instantAt2359 = LocalDateTime.of(2015, Month.NOVEMBER, 29, 23, 59).atZone(ZoneId.of(zoneId)).toInstant();
 
         backwardAdjusted = TimeHelper.getMidnightAdjustedInstantBasedOnZone(instantAt2359, zoneId, false);
-        assertEquals("Sun, 29 Nov 2015, 11:59 PM UTC",
+        assertEquals("Backward adjustment: 23:59 to 11:59 PM",
                 TimeHelper.formatInstant(backwardAdjusted, zoneId, DATETIME_DISPLAY_FORMAT));
 
         forwardAdjusted = TimeHelper.getMidnightAdjustedInstantBasedOnZone(instantAt2359, zoneId, true);
-        assertEquals("Mon, 30 Nov 2015, 12:00 AM UTC",
+        assertEquals("Forward adjustment: 23:59 to 12:00 AM",
                 TimeHelper.formatInstant(forwardAdjusted, zoneId, DATETIME_DISPLAY_FORMAT));
 
         String wrongTimeZone = "Asia/Singapore";
 
-        backwardAdjusted = TimeHelper.getMidnightAdjustedInstantBasedOnZone(instantAt0000, wrongTimeZone, false);
-        assertEquals("Mon, 30 Nov 2015, 12:00 AM UTC",
+        backwardAdjusted = TimeHelper.getMidnightAdjustedInstantBasedOnZone(initialInstant, wrongTimeZone, false);
+        assertEquals("Backward adjustment with wrong time zone: Midnight to 12:00 AM",
                 TimeHelper.formatInstant(backwardAdjusted, zoneId, DATETIME_DISPLAY_FORMAT));
 
         forwardAdjusted = TimeHelper.getMidnightAdjustedInstantBasedOnZone(instantAt2359, wrongTimeZone, true);
-        assertEquals("Sun, 29 Nov 2015, 11:59 PM UTC",
+        assertEquals("Forward adjustment with wrong time zone: 23:59 to 11:59 PM",
+                TimeHelper.formatInstant(forwardAdjusted, zoneId, DATETIME_DISPLAY_FORMAT));
+
+        // Test the else if condition
+        Instant instantAt1200 = LocalDateTime.of(2015, Month.NOVEMBER, 30, 12, 0).atZone(ZoneId.of(zoneId)).toInstant();
+        forwardAdjusted = TimeHelper.getMidnightAdjustedInstantBasedOnZone(instantAt1200, zoneId, true);
+        assertEquals("No adjustment required: 12:00 PM",
                 TimeHelper.formatInstant(forwardAdjusted, zoneId, DATETIME_DISPLAY_FORMAT));
     }
+
 
     @Test
     public void testGetInstantNearestHourBefore() {
